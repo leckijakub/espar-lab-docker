@@ -1,0 +1,62 @@
+version: '3.4'
+services:
+  espar-lab-dhcp:
+    image: docker.cloudsmith.io/isc/docker/kea-dhcp4:latest
+    container_name: espar-lab-dhcp
+    restart: always
+    network_mode: host
+    # networks:
+    #   espar-lab:
+    #     ipv4_address: 192.0.2.40
+    volumes:
+      - ./dhcp/kea-dhcp4.conf:/etc/kea/kea-dhcp4.conf:ro
+
+  # espar-lab-nfs:
+  #   # image: erichough/nfs-server
+  #   build:
+  #     context: ./netboot
+  #     dockerfile: Dockerfile
+  #   container_name: espar-lab-nfs
+  #   restart: always
+  #   privileged: true
+  #   # network_mode: host
+  #   networks:
+  #     espar-lab:
+  #       ipv4_address: 192.0.2.41
+  #   # ports:
+  #   #   # - "111:111"
+  #   #   - "2049:2049"
+  #   #   - "32765:32765"
+  #   #   - "32767:32767"
+  #   environment:
+  #     - NFS_EXPORT_0=/srv/nfs/exports/beacon_root *(ro,no_root_squash,no_subtree_check,insecure)
+  #     - NFS_LOG_LEVEL=DEBUG
+  #     - NFS_DISABLE_VERSION_3=1
+  #   volumes:
+  #     - /srv/nfs/exports/beacon_root:/srv/nfs/exports/beacon_root:ro
+
+  espar-lab-tftp:
+    image: danrue/tftpd-hpa
+    container_name: espar-lab-tftp
+    restart: always
+    network_mode: host
+    # networks:
+    #   espar-lab:
+    #     ipv4_address: 192.0.2.42
+    # ports:
+    #   - "192.0.2.0:69:69/udp"
+    #   - "8099:8099/tcp"
+    #   - 65500-65515:65500-65515/udp
+    volumes:
+      - /srv/nfs/exports/beacon_root/boot:/srv/tftp:ro
+
+# networks:
+#   espar-lab:
+#     # Use a custom driver
+#     driver: ipvlan
+#     driver_opts:
+#       parent: eno2
+#     ipam:
+#       config:
+#         - subnet: "192.0.2.0/24"
+

@@ -1,0 +1,37 @@
+#!/bin/sh
+
+hangout() {
+
+#   log_header 'ready and waiting for NFS client connections'
+
+  # wait forever or until we get SIGTERM or SIGINT
+  # https://stackoverflow.com/a/41655546/229920
+  # https://stackoverflow.com/a/27694965/229920
+  while :; do sleep 2073600 & wait; done
+}
+
+
+# exit if NETBOOT_IMAGE is not a file
+if [ ! -f "${NETBOOT_IMAGE}" ]; then
+  echo "ERROR: NETBOOT_IMAGE is not a file: ${NETBOOT_IMAGE}"
+  exit 1
+fi
+
+mkdir -p ${NETBOOT_DIR}
+# mount NETBOOT_IMAGE to NETBOOT_DIR
+mount -o ro ${NETBOOT_IMAGE} ${NETBOOT_DIR}
+
+# add NETBOOT_DIR to exports
+echo "${NETBOOT_DIR} *(ro,sync,no_subtree_check,no_root_squash)" > /etc/exports
+exportfs -a
+
+
+
+# "-L", "--verbose", "-m", "/tftpboot/mapfile", "-u", "tftp", "--secure", "${NETBOOT_DIR}"
+rpcbind -s
+rpc.nfsd --tcp --udp --nfs-version 3 --port ${NFS_PORT}; echo $?
+# in.tftpd -L --verbose -u tftp --address ${TFTPD_BIND_ADDRESS} --secure ${NETBOOT_DIR} & TFTPD_PID="$!"
+
+wait "$TFTPD_PID"
+
+
